@@ -1,0 +1,35 @@
+#!/usr/bin/bash
+
+get_package_manager() {
+  declare -A osInfo;
+  osInfo[/etc/redhat-release]=dnf
+  osInfo[/etc/arch-release]=pacman
+  osInfo[/etc/gentoo-release]=emerge
+  osInfo[/etc/SuSE-release]=zypp
+  osInfo[/etc/debian_version]=apt-get
+  osInfo[/etc/alpine-release]=apk
+
+for f in ${!osInfo[@]}
+do
+    if [[ -f $f ]];then
+      echo ${osInfo[$f]}
+    fi
+done
+}
+
+
+echo -e "-----------------------XRootD Setup--------------------------"
+echo -e "--> Note: The names of dependencies have been set with almalinux 9 (dnf) in mind. They might work well for Fedora, el8, el9 etc."
+echo -e "-->       If you have a different linux distribution and find that some packages are missing, consider renaming the package names to your software manager."
+echo -e "\n--> System Configuration:"
+cat /etc/os-release || cat /etc/lsb-release
+echo -e "\n--> Proceeding with Package Manager:"
+pm=$(get_package_manager)
+echo "$pm"
+echo -e "\n--> Installing xrootd base ..."
+sudo $pm install xrootd
+echo -e "\n--> Installing optional dependencies (Needed to compile the python bindings for XRootD)"
+sudo $pm install fuse-devel davix-devel libcurl-devel isa-l autoconf automake libtool yasm krb5-devel json-c-devel libmacaroons-devel python3-devel python3-setuptools readline-devel scitokens-cpp-devel systemd-devel voms-devel gtest-devel
+echo -e "\n--> Installing xrootd python bindings ..."
+pip3 install XRootD
+echo "-----------------------Setup Complete--------------------------"
